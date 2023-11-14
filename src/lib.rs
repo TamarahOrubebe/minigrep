@@ -32,7 +32,23 @@ impl Config {
         };
 
         // let ignore_case = env::var("IGNORE_CASE").is_ok();
-        let ignore_case = env::var("IGNORE_CASE").is_ok();
+        let ignore_case = match args.next() {
+            Some(x) => {
+                 if x == String::from("false") {
+                    false
+                } else {
+                    true
+                }
+            },
+
+            None => env::var("IGNORE_CASE").is_ok()
+               
+        };
+        
+
+        // ignore_case = env::var("IGNORE_CASE").is_ok();
+        
+
           
 
        
@@ -69,15 +85,15 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     // results
 
     contents.lines()
-        .filter(|line| line.contains(query))
-        .collect()
+        .filter(|line| line.trim().contains(query))
+        .map(|line| line.trim()).collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
      contents.lines()
-        .filter(|line| line.contains(&query))
-        .collect()
+        .filter(|line| line.to_lowercase().trim().contains(&query))
+        .map(|line| line.trim()).collect()
 }
 
 #[cfg(test)]
