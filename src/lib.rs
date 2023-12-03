@@ -1,18 +1,15 @@
-use std::fs;
-use std::error::Error;
 use std::env;
-
-
+use std::error::Error;
+use std::fs;
 
 pub struct Config {
     pub query: String,
     pub file_path: String,
-    pub ignore_case: bool
+    pub ignore_case: bool,
 }
 
 impl Config {
-    pub fn build(mut args: impl Iterator<Item = String>,
-) -> Result<Config, &'static str> {
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
         args.next();
 
         // let length = args.len();
@@ -21,7 +18,7 @@ impl Config {
         //     return Err("Not enough arguments");
         // }
 
-       let query = match args.next() {
+        let query = match args.next() {
             Some(arg) => arg,
             None => return Err("Didn't get a query string"),
         };
@@ -34,31 +31,28 @@ impl Config {
         // let ignore_case = env::var("IGNORE_CASE").is_ok();
         let ignore_case = match args.next() {
             Some(x) => {
-                 if x == String::from("false") {
+                if x == String::from("false") {
                     false
                 } else {
                     true
                 }
-            },
+            }
 
-            None => env::var("IGNORE_CASE").is_ok()
-               
+            None => env::var("IGNORE_CASE").is_ok(),
         };
-        
 
         // ignore_case = env::var("IGNORE_CASE").is_ok();
-        
 
-          
-
-       
-        Ok(Config { query, file_path , ignore_case})
+        Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+        })
     }
 }
 
-
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-     let contents = fs::read_to_string(config.file_path)?;
+    let contents = fs::read_to_string(config.file_path)?;
     // dbg!(args);
 
     let results = if config.ignore_case {
@@ -67,11 +61,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         search(&config.query, &contents)
     };
 
-
     for line in results {
         println!("{line}")
     }
-   
+
     Ok(())
 }
 
@@ -84,16 +77,20 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     // }
     // results
 
-    contents.lines()
+    contents
+        .lines()
         .filter(|line| line.contains(query))
-        .map(|line| line).collect()
+        .map(|line| line)
+        .collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
-     contents.lines()
+    contents
+        .lines()
         .filter(|line| line.to_lowercase().contains(&query))
-        .map(|line| line).collect()
+        .map(|line| line)
+        .collect()
 }
 
 #[cfg(test)]
@@ -103,26 +100,27 @@ mod tests {
     #[test]
     fn case_sensitive() {
         let query = "duct";
-        let contents  = "\
+        let contents = "\
 Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
 
     #[test]
     fn case_insensitive() {
-         let query = "rUsT";
-        let contents  = "\
+        let query = "rUsT";
+        let contents = "\
 Rust:
 safe, fast, productive.
 Pick three.
 Trust me.";
 
-        assert_eq!(vec!["Rust:", "Trust me."], search_case_insensitive(query, contents));
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, contents)
+        );
     }
-
 }
